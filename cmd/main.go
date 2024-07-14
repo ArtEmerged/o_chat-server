@@ -4,9 +4,10 @@ import (
 	"log"
 	"net"
 
-	grpc_chat "github.com/ArtEmerged/o_chat-server/internal/grpc/chat"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	
+	grpc_chat "github.com/ArtEmerged/o_chat-server/internal/grpc/chat"
 )
 
 func main() {
@@ -23,5 +24,4 @@ func main() {
 	if err = s.Serve(l); err != nil {
 		log.Println(err)
 	}
-
 }

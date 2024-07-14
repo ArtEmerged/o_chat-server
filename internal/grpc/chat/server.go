@@ -1,8 +1,9 @@
 package grpc_chat
 
 import (
-	desc "github.com/ArtEmerged/o_chat-server/pkg/chat_v1"
 	"google.golang.org/grpc"
+
+	desc "github.com/ArtEmerged/o_chat-server/pkg/chat_v1"
 )
 
 type chatServer struct {
