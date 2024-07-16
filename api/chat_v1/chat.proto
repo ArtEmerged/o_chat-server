@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package chat_v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/ArtEmerged/o_chat_server/pkg/chat_v1;chat_v1";
+
+
+service ChatV1 {
+    rpc CreateChat(CreateChatRequest) returns (CreateChatResponse);
+    rpc DeleteChat(DeleteChatRequest) returns (google.protobuf.Empty);
+    rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+}
+
+message CreateChatRequest {
+    string chat_name = 1;
+    int64 creator_id = 2;
+    repeated int64 user_id = 3;
+}
+
+message CreateChatResponse {
+    int64 id = 1;
+}
+
+message DeleteChatRequest {
+    int64 id = 1;
+}
+
+message SendMessageRequest {
+    int64 chat_id = 1;
+    string from = 2;
+    string text = 3;
+    google.protobuf.Timestamp timestamp = 4;
+}
+
+message SendMessageResponse {}
