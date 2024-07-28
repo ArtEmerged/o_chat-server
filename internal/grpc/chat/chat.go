@@ -53,7 +53,7 @@ func (s *chatServer) SendMessage(ctx context.Context, in *desc.SendMessageReques
 
 	err := s.service.SendMessage(ctx, def.AdaptedSendMessageRequestToLocal(in))
 	if err != nil {
-		if errors.As(err, &def.ErrNotFound) {
+		if errors.Is(err, def.ErrNotFound) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		}
 
