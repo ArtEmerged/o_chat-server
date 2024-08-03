@@ -14,6 +14,9 @@ type chatServer struct {
 	service def.ChatService
 }
 
+// Register registers the chat service on the gRPC server.
+// s - pointer to the gRPC server
+// service - the chat service interface to be registered
 func Register(s *grpc.Server, service def.ChatService) {
 	desc.RegisterChatV1Server(s, &chatServer{service: service})
 }

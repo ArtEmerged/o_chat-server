@@ -12,24 +12,43 @@ import (
 
 	"github.com/ArtEmerged/o_chat-server/config"
 	grpc_chat "github.com/ArtEmerged/o_chat-server/internal/grpc/chat"
-	"github.com/ArtEmerged/o_chat-server/internal/repository"
-	service "github.com/ArtEmerged/o_chat-server/internal/sevice"
+	repo "github.com/ArtEmerged/o_chat-server/internal/repository"
+	serv "github.com/ArtEmerged/o_chat-server/internal/service"
 	"github.com/ArtEmerged/o_chat-server/pkg/database"
 )
 
 func main() {
 	cfg := config.New()
-	cfg.Init("")
+	err := cfg.Init("")
+	if err != nil {
+		log.Printf("failed init config: %v\n", err)
+		return
+	}
 
-	db := database.NewPostgres(cfg.GetDbDNS())
-	repo := repository.New(db)
-	service := service.New(repo)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	db, err := database.NewPostgres(ctx, cfg.GetDbDNS())
+	if err != nil {
+		log.Printf("failed connection to postgres db: %v\n", err)
+		return
+	}
+	defer db.Close()
+
+	repository := repo.New(db)
+	service := serv.New(repository)
 
 	l, err := net.Listen("tcp", cfg.GetServerAddress())
 	if err != nil {
-		panic(err)
+		log.Printf("failed listen: %v\n", err)
+		return
 	}
-	defer l.Close()
+	defer func() {
+		err = l.Close()
+		if err != nil {
+			log.Printf("failed close listener: %v\n", err)
+		}
+	}()
 
 	s := grpc.NewServer()
 	reflection.Register(s)
@@ -42,7 +61,7 @@ func main() {
 		}
 	}()
 
-	quit, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	quit, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
 	<-quit.Done()

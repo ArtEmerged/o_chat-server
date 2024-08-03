@@ -9,9 +9,11 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	def "github.com/ArtEmerged/o_chat-server/internal/definitions"
+	"github.com/ArtEmerged/o_chat-server/internal/definitions/adapter"
 	desc "github.com/ArtEmerged/o_chat-server/pkg/chat_v1"
 )
 
+// CreateChat creates new chat by chat name and creator id with user ids.
 func (s *chatServer) CreateChat(ctx context.Context, in *desc.CreateChatRequest) (*desc.CreateChatResponse, error) {
 	if in.GetChatName() == "" {
 		return nil, status.Error(codes.InvalidArgument, "missing chat name")
@@ -21,7 +23,7 @@ func (s *chatServer) CreateChat(ctx context.Context, in *desc.CreateChatRequest)
 		return nil, status.Error(codes.InvalidArgument, "negative creator id")
 	}
 
-	id, err := s.service.CreateChat(ctx, def.AdaptedCreateChatRequestToLocal(in))
+	id, err := s.service.CreateChat(ctx, adapter.CreateChatRequestToLocal(in))
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -29,6 +31,7 @@ func (s *chatServer) CreateChat(ctx context.Context, in *desc.CreateChatRequest)
 	return &desc.CreateChatResponse{Id: int64(id)}, nil
 }
 
+// DeleteChat deletes chat by id.
 func (s *chatServer) DeleteChat(ctx context.Context, in *desc.DeleteChatRequest) (*emptypb.Empty, error) {
 	if in.GetId() < 1 {
 		return nil, status.Error(codes.InvalidArgument, "negative id")
@@ -42,6 +45,7 @@ func (s *chatServer) DeleteChat(ctx context.Context, in *desc.DeleteChatRequest)
 	return nil, nil
 }
 
+// SendMessage sends message to chat.
 func (s *chatServer) SendMessage(ctx context.Context, in *desc.SendMessageRequest) (*desc.SendMessageResponse, error) {
 	if in.GetText() == "" || in.GetFromUserId() < 1 {
 		return nil, status.Error(codes.InvalidArgument, "missing field from or text")
@@ -51,7 +55,7 @@ func (s *chatServer) SendMessage(ctx context.Context, in *desc.SendMessageReques
 		return nil, status.Error(codes.InvalidArgument, "negative id")
 	}
 
-	err := s.service.SendMessage(ctx, def.AdaptedSendMessageRequestToLocal(in))
+	err := s.service.SendMessage(ctx, adapter.SendMessageRequestToLocal(in))
 	if err != nil {
 		if errors.Is(err, def.ErrNotFound) {
 			return nil, status.Error(codes.NotFound, err.Error())

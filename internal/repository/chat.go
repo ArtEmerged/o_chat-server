@@ -9,6 +9,7 @@ import (
 	def "github.com/ArtEmerged/o_chat-server/internal/definitions"
 )
 
+// CreateChat creates new chat by chat name and creator id with user ids.
 func (r *chatRepo) CreateChat(ctx context.Context, in *def.CreateChatRequest) (id int64, err error) {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
@@ -18,23 +19,31 @@ func (r *chatRepo) CreateChat(ctx context.Context, in *def.CreateChatRequest) (i
 	q := `
 	INSERT INTO	public.chats (name, owner, created_at)
 	VALUES ($1, $2, $3) RETURNING id;`
-	var chatID int64
 
-	err = tx.QueryRow(ctx, q, in.ChatName, in.CreatorID, time.Now()).Scan(&chatID)
+	var (
+		chatID    int64
+		createdAt = time.Now().UTC()
+	)
+
+	err = tx.QueryRow(ctx, q, in.ChatName, in.CreatorID, createdAt).Scan(&chatID)
 	if err != nil {
-		tx.Rollback(ctx)
+		err = tx.Rollback(ctx)
+		if err != nil {
+			return -1, fmt.Errorf("failed to rollback transaction: %w", err)
+		}
+
 		return -1, fmt.Errorf("failed to create chat: %w", err)
 	}
 
 	args := []interface{}{chatID}
 	values := strings.Builder{}
 
-	for i, user_id := range in.UserIDs {
+	for i, userID := range in.UserIDs {
 		if i > 0 {
 			values.WriteString(", ")
 		}
 		values.WriteString(fmt.Sprintf("($1, $%d)", i+2))
-		args = append(args, user_id)
+		args = append(args, userID)
 
 	}
 
@@ -44,7 +53,11 @@ func (r *chatRepo) CreateChat(ctx context.Context, in *def.CreateChatRequest) (i
 
 	_, err = tx.Exec(ctx, q, args...)
 	if err != nil {
-		tx.Rollback(ctx)
+		err = tx.Rollback(ctx)
+		if err != nil {
+			return -1, fmt.Errorf("failed to rollback transaction: %w", err)
+		}
+
 		return -1, fmt.Errorf("failed to add users to chat: %w", err)
 	}
 
@@ -56,19 +69,24 @@ func (r *chatRepo) CreateChat(ctx context.Context, in *def.CreateChatRequest) (i
 	return chatID, nil
 }
 
+// DeleteChat deletes chat by id.
 func (r *chatRepo) DeleteChat(ctx context.Context, id int64) error {
 	q := `
 	UPDATE public.chats
 	SET deleted_at = $1
 	WHERE id = $2 AND deleted_at IS NULL;`
 
-	_, err := r.db.Exec(ctx, q, time.Now(), id)
+	createdAt := time.Now().UTC()
+
+	_, err := r.db.Exec(ctx, q, createdAt, id)
 	if err != nil {
 		return fmt.Errorf("failed to delete chat: %w", err)
 	}
 
 	return nil
 }
+
+// SendMessage sends message to chat by chat id and from user id.
 func (r *chatRepo) SendMessage(ctx context.Context, in *def.SendMessageRequest) error {
 	q := `
 	WITH chat_exists AS (
@@ -85,7 +103,9 @@ func (r *chatRepo) SendMessage(ctx context.Context, in *def.SendMessageRequest) 
 	WHERE EXISTS (SELECT 1 FROM chat_exists)
 	  AND EXISTS (SELECT 1 FROM user_in_chat);`
 
-	result, err := r.db.Exec(ctx, q, in.ChatID, in.FromUserID, in.Text, time.Now())
+	createdAt := time.Now().UTC()
+
+	result, err := r.db.Exec(ctx, q, in.ChatID, in.FromUserID, in.Text, createdAt)
 	if err != nil {
 		return fmt.Errorf("failed insert chat message: %w", err)
 	}

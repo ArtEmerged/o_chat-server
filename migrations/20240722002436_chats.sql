@@ -1,10 +1,10 @@
 -- +goose Up
 CREATE TABLE chats (
     id serial PRIMARY KEY,
-    name text NOT NULL UNIQUE,
+    name varchar(255) NOT NULL UNIQUE,
     owner integer NOT NULL,
-    created_at timestamptz  NOT NULL,
-    deleted_at timestamptz
+    created_at timestamp  NOT NULL,
+    deleted_at timestamp
 );
 
 -- +goose Down

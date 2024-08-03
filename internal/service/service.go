@@ -8,8 +8,7 @@ type chatService struct {
 	repo def.ChatRepo
 }
 
-var _ def.ChatService = (*chatService)(nil)
-
-func New(repo def.ChatRepo) *chatService {
+// New returns new chat service
+func New(repo def.ChatRepo) def.ChatService {
 	return &chatService{repo: repo}
 }

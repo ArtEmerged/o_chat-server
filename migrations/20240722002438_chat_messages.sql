@@ -3,7 +3,7 @@ CREATE TABLE chat_messages (
     chat_id integer NOT NULL,
     from_user_id integer NOT NULL,
     text text NOT NULL,
-    created_at timestamptz  NOT NULL
+    created_at timestamp  NOT NULL
 );
 
 -- +goose Down
