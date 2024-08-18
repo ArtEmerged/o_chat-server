@@ -1,17 +1,23 @@
 package repository
 
 import (
-	"github.com/jackc/pgx/v4/pgxpool"
+	"context"
 
-	def "github.com/ArtEmerged/o_chat-server/internal/definitions"
+	"github.com/ArtEmerged/o_chat-server/internal/model"
 )
 
-type chatRepo struct {
-	db *pgxpool.Pool
+// ChatRepo is an interface for chat repository.
+type ChatRepo interface {
+	// CreateChat creates new chat by chat name and creator id with user ids.
+	CreateChat(ctx context.Context, in *model.CreateChatRequest) (id int64, err error)
+	// DeleteChat deletes chat by id.
+	DeleteChat(ctx context.Context, id int64) error
+	// AddUsersToChat adds users to chat.
+	AddUsersToChat(ctx context.Context, chatID int64, userIDs []int64) error
 }
 
-// New creates a new instance of chatRepo with the given database connection pool.
-// db - pointer to the PostgreSQL connection pool
-func New(db *pgxpool.Pool) def.ChatRepo {
-	return &chatRepo{db: db}
+// MessageRepo is an interface for chat repository.
+type MessageRepo interface {
+	// SendMessage sends message to chat by chat id and from user id.
+	SendMessage(ctx context.Context, in *model.SendMessageRequest) error
 }

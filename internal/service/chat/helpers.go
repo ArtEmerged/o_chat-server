@@ -1,4 +1,4 @@
-package service
+package chat
 
 func uniqueSliceInt64(s []int64) []int64 {
 	uniqueUserIDs := map[int64]struct{}{}
