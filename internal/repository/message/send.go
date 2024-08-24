@@ -11,41 +11,26 @@ import (
 
 // SendMessage sends message to chat by chat id and from user id.
 func (r *messageRepo) SendMessage(ctx context.Context, in *model.SendMessageRequest) error {
-	query := fmt.Sprintf(
+	q := db.Query{
+		Name: "message_repository.SendMessage",
+	}
+
+	q.QueryRaw =
 		`WITH chat_exists AS (
 		SELECT 1
-		FROM %[1]s
-		WHERE %[2]s = $1 AND %[3]s IS NULL
+		FROM public.chats
+		WHERE id = $1 AND deleted_at IS NULL
 	), user_in_chat AS (
 		SELECT 1
-		FROM %[4]s
-		WHERE %[5]s = $1 AND %[6]s = $2
+		FROM public.chat_users
+		WHERE chat_id = $1 AND user_id = $2
 	)
-	INSERT INTO %[7]s (%[8]s, %[9]s, %[10]s, %[11]s)
+	INSERT INTO public.chat_messages (chat_id, from_user_id, text, created_at)
 	SELECT $1, $2, $3, $4
 	WHERE EXISTS (SELECT 1 FROM chat_exists)
-	  AND EXISTS (SELECT 1 FROM user_in_chat);`,
-		tableChats,                // 1
-		tableChatsIDColumn,        // 2
-		tableChatsDeletedAtColumn, // 3
-
-		tableChatUsers,             // 4
-		tableChatUsersChatIDColumn, // 5
-		tableChatUsersUserIDColumn, // 6
-
-		tableMessages,                 // 7
-		tableMessagesChatIDColumn,     // 8
-		tableMessagesFromUserIDColumn, // 9
-		tableMessagesTextColumn,       // 10
-		tableMessagesCreatedAtColumn,  // 11
-	)
+		AND EXISTS (SELECT 1 FROM user_in_chat);`
 
 	msg := adapter.SendMessageRequestToRepo(in)
-
-	q := db.Query{
-		Name:     "message_repository.SendMessage",
-		QueryRaw: query,
-	}
 
 	result, err := r.db.DB().ExecContext(ctx, q, msg.ChatID, msg.FromUserID, msg.Text, msg.CreatedAt)
 	if err != nil {

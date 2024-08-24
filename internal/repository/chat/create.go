@@ -14,23 +14,16 @@ import (
 func (r *chatRepo) CreateChat(ctx context.Context, in *model.CreateChatRequest) (id int64, err error) {
 	newChat := adapter.CreateChatRequestToRepo(in)
 
-	query := fmt.Sprintf(
-		`INSERT INTO	%[1]s (%[2]s, %[3]s, %[4]s)
-		VALUES ($1, $2, $3) RETURNING %[5]s;`,
-		tableChats,
+	q := db.Query{
+		Name: "chat_repository.CreateChat",
+	}
 
-		tableChatsNameColumn,
-		tableChatsOwnerColumn,
-		tableChatsCreatedAtColumn,
-		tableChatsIDColumn,
-	)
+	q.QueryRaw =
+		`INSERT INTO public.chats (name, owner, created_at)
+		VALUES ($1, $2, $3) 
+		RETURNING id;`
 
 	var chatID int64
-
-	q := db.Query{
-		Name:     "chat_repository.CreateChat",
-		QueryRaw: query,
-	}
 
 	err = r.db.DB().QueryRowContext(ctx, q, newChat.Name, newChat.Owner, newChat.CreateAt).Scan(&chatID)
 	if err != nil {
@@ -59,14 +52,8 @@ func (r *chatRepo) AddUsersToChat(ctx context.Context, chatID int64, userIDs []i
 	}
 
 	q.QueryRaw = fmt.Sprintf(
-		`INSERT INTO %[1]s (%[2]s, %[3]s)
-		VALUES %[4]s`,
-		tableChatUsers,
-
-		tableChatUsersChatIDColumn,
-		tableChatUsersUserIDColumn,
-		values.String(),
-	)
+		`INSERT INTO public.chat_users (chat_id, user_id) 
+		VALUES %s`, values.String())
 
 	_, err := r.db.DB().ExecContext(ctx, q, args...)
 	if err != nil {

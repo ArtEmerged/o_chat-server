@@ -10,20 +10,14 @@ import (
 
 // DeleteChat deletes chat by id.
 func (r *chatRepo) DeleteChat(ctx context.Context, id int64) error {
-	query := fmt.Sprintf(
-		`UPDATE %[1]s
-		SET %[2]s = $1
-		WHERE %[3]s = $2 AND %[2]s IS NULL;`,
-		tableChatUsers,
-
-		tableChatsDeletedAtColumn,
-		tableChatsIDColumn,
-	)
-
 	q := db.Query{
-		Name:     "deleted_repository.DeleteChat",
-		QueryRaw: query,
+		Name: "deleted_repository.DeleteChat",
 	}
+
+	q.QueryRaw =
+		`UPDATE public.chat_users
+		SET deleted_at = $1
+		WHERE id = $2 AND deleted_at IS NULL;`
 
 	createdAt := time.Now().UTC()
 

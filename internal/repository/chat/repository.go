@@ -5,23 +5,6 @@ import (
 	"github.com/ArtEmerged/o_chat-server/internal/repository"
 )
 
-const (
-	tableChats = "public.chats"
-
-	tableChatsIDColumn        = "id"
-	tableChatsNameColumn      = "name"
-	tableChatsOwnerColumn     = "owner"
-	tableChatsCreatedAtColumn = "created_at"
-	tableChatsDeletedAtColumn = "deleted_at"
-)
-
-const (
-	tableChatUsers = "public.chat_users"
-
-	tableChatUsersChatIDColumn = "chat_id"
-	tableChatUsersUserIDColumn = "user_id"
-)
-
 type chatRepo struct {
 	db dbClient.Client
 }
