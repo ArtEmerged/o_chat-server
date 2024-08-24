@@ -8,6 +8,10 @@ import (
 
 // CreateChat creates new chat by chat name and creator id with user ids.
 func (s *chatService) CreateChat(ctx context.Context, in *model.CreateChatRequest) (id int64, err error) {
+	if err = in.Validate(); err != nil {
+		return -1, err
+	}
+
 	// add the chat owner to the list of participants
 	in.UserIDs = append(in.UserIDs, in.CreatorID)
 
@@ -31,7 +35,7 @@ func (s *chatService) CreateChat(ctx context.Context, in *model.CreateChatReques
 	})
 
 	if err != nil {
-		return 0, err
+		return -1, err
 	}
 
 	return id, nil
