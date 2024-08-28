@@ -1,4 +1,4 @@
-package definitions
+package model
 
 import "errors"
 
@@ -8,4 +8,7 @@ var (
 
 	// ErrAlreadyExists is returned when in database a record already exists.
 	ErrAlreadyExists = errors.New("already exists")
+
+	// ErrInvalidArgument is returned when an invalid argument is provided.
+	ErrInvalidArgument = errors.New("invalid arguments")
 )
