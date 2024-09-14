@@ -1,4 +1,4 @@
-package chat
+package message
 
 import (
 	"github.com/ArtEmerged/o_chat-server/internal/client/db"
