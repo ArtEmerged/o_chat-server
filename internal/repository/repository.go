@@ -19,5 +19,5 @@ type ChatRepo interface {
 // MessageRepo is an interface for chat repository.
 type MessageRepo interface {
 	// SendMessage sends message to chat by chat id and from user id.
-	SendMessage(ctx context.Context, in *model.SendMessageRequest) error
+	SendMessage(ctx context.Context, in *model.SendMessageRequest) (*model.Message, error)
 }

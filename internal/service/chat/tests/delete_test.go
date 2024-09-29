@@ -5,11 +5,14 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/ArtEmerged/library/client/cache"
+	cacheMock "github.com/ArtEmerged/library/client/cache/mocks"
+	"github.com/ArtEmerged/library/client/db"
 	"github.com/brianvoe/gofakeit"
 	"github.com/gojuno/minimock/v3"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ArtEmerged/o_chat-server/internal/client/db"
+	"github.com/ArtEmerged/o_chat-server/internal/model"
 	"github.com/ArtEmerged/o_chat-server/internal/repository"
 	"github.com/ArtEmerged/o_chat-server/internal/repository/mocks"
 	"github.com/ArtEmerged/o_chat-server/internal/service/chat"
@@ -18,6 +21,7 @@ import (
 func TestDeleteChat(t *testing.T) {
 	type chatRepoMockFunc func(mc *minimock.Controller) repository.ChatRepo
 	type txManagerMock func(mc *minimock.Controller) db.TxManager
+	type cacheMockFunc func(mc *minimock.Controller) cache.Cache
 
 	type args struct {
 		ctx context.Context
@@ -37,6 +41,7 @@ func TestDeleteChat(t *testing.T) {
 		want          int64
 		wantErr       error
 		chatRepoMock  chatRepoMockFunc
+		cacheMock     cacheMockFunc
 		txManagerMock txManagerMock
 	}{
 		{
@@ -52,7 +57,11 @@ func TestDeleteChat(t *testing.T) {
 				repoMock.DeleteChatMock.Expect(ctx, chatID).Return(nil)
 				return repoMock
 			},
-
+			cacheMock: func(mc *minimock.Controller) cache.Cache {
+				cacheMock := cacheMock.NewCacheMock(mc)
+				cacheMock.DelMock.Expect(ctx, model.ChatCacheKey(chatID)).Return(nil)
+				return cacheMock
+			},
 			txManagerMock: func(mc *minimock.Controller) db.TxManager { return nil },
 		},
 		{
@@ -68,7 +77,7 @@ func TestDeleteChat(t *testing.T) {
 				repoMock.DeleteChatMock.Expect(ctx, chatID).Return(repositoryErr)
 				return repoMock
 			},
-
+			cacheMock:     func(mc *minimock.Controller) cache.Cache { return nil },
 			txManagerMock: func(mc *minimock.Controller) db.TxManager { return nil },
 		},
 	}
@@ -79,7 +88,9 @@ func TestDeleteChat(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			chatRepo := tt.chatRepoMock(mc)
 			txManager := tt.txManagerMock(mc)
-			service := chat.New(chatRepo, txManager)
+			cache := tt.cacheMock(mc)
+
+			service := chat.New(chatRepo, txManager, cache)
 			err := service.DeleteChat(tt.args.ctx, tt.args.req)
 
 			require.Equal(t, tt.wantErr, err)

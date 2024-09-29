@@ -2,12 +2,14 @@ package chat
 
 import (
 	"context"
+	"log"
 
 	"github.com/ArtEmerged/o_chat-server/internal/model"
 )
 
 // CreateChat creates new chat by chat name and creator id with user ids.
 func (s *chatService) CreateChat(ctx context.Context, in *model.CreateChatRequest) (id int64, err error) {
+
 	if err = in.Validate(); err != nil {
 		return -1, err
 	}
@@ -33,9 +35,20 @@ func (s *chatService) CreateChat(ctx context.Context, in *model.CreateChatReques
 
 		return nil
 	})
-
 	if err != nil {
 		return -1, err
+	}
+
+	newChat := &model.Chat{
+		ID:        id,
+		ChatName:  in.ChatName,
+		CreatorID: in.CreatorID,
+		UserIDs:   in.UserIDs,
+	}
+
+	err = s.cache.Set(ctx, model.ChatCacheKey(id), newChat, 0)
+	if err != nil {
+		log.Printf("WARN: failed to set chat in cache: %s\n", err.Error())
 	}
 
 	return id, nil

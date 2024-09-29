@@ -19,7 +19,7 @@ type MessageRepoMock struct {
 	t          minimock.Tester
 	finishOnce sync.Once
 
-	funcSendMessage          func(ctx context.Context, in *model.SendMessageRequest) (err error)
+	funcSendMessage          func(ctx context.Context, in *model.SendMessageRequest) (mp1 *model.Message, err error)
 	inspectFuncSendMessage   func(ctx context.Context, in *model.SendMessageRequest)
 	afterSendMessageCounter  uint64
 	beforeSendMessageCounter uint64
@@ -77,6 +77,7 @@ type MessageRepoMockSendMessageParamPtrs struct {
 
 // MessageRepoMockSendMessageResults contains results of the MessageRepo.SendMessage
 type MessageRepoMockSendMessageResults struct {
+	mp1 *model.Message
 	err error
 }
 
@@ -170,7 +171,7 @@ func (mmSendMessage *mMessageRepoMockSendMessage) Inspect(f func(ctx context.Con
 }
 
 // Return sets up results that will be returned by MessageRepo.SendMessage
-func (mmSendMessage *mMessageRepoMockSendMessage) Return(err error) *MessageRepoMock {
+func (mmSendMessage *mMessageRepoMockSendMessage) Return(mp1 *model.Message, err error) *MessageRepoMock {
 	if mmSendMessage.mock.funcSendMessage != nil {
 		mmSendMessage.mock.t.Fatalf("MessageRepoMock.SendMessage mock is already set by Set")
 	}
@@ -178,12 +179,12 @@ func (mmSendMessage *mMessageRepoMockSendMessage) Return(err error) *MessageRepo
 	if mmSendMessage.defaultExpectation == nil {
 		mmSendMessage.defaultExpectation = &MessageRepoMockSendMessageExpectation{mock: mmSendMessage.mock}
 	}
-	mmSendMessage.defaultExpectation.results = &MessageRepoMockSendMessageResults{err}
+	mmSendMessage.defaultExpectation.results = &MessageRepoMockSendMessageResults{mp1, err}
 	return mmSendMessage.mock
 }
 
 // Set uses given function f to mock the MessageRepo.SendMessage method
-func (mmSendMessage *mMessageRepoMockSendMessage) Set(f func(ctx context.Context, in *model.SendMessageRequest) (err error)) *MessageRepoMock {
+func (mmSendMessage *mMessageRepoMockSendMessage) Set(f func(ctx context.Context, in *model.SendMessageRequest) (mp1 *model.Message, err error)) *MessageRepoMock {
 	if mmSendMessage.defaultExpectation != nil {
 		mmSendMessage.mock.t.Fatalf("Default expectation is already set for the MessageRepo.SendMessage method")
 	}
@@ -212,8 +213,8 @@ func (mmSendMessage *mMessageRepoMockSendMessage) When(ctx context.Context, in *
 }
 
 // Then sets up MessageRepo.SendMessage return parameters for the expectation previously defined by the When method
-func (e *MessageRepoMockSendMessageExpectation) Then(err error) *MessageRepoMock {
-	e.results = &MessageRepoMockSendMessageResults{err}
+func (e *MessageRepoMockSendMessageExpectation) Then(mp1 *model.Message, err error) *MessageRepoMock {
+	e.results = &MessageRepoMockSendMessageResults{mp1, err}
 	return e.mock
 }
 
@@ -238,7 +239,7 @@ func (mmSendMessage *mMessageRepoMockSendMessage) invocationsDone() bool {
 }
 
 // SendMessage implements repository.MessageRepo
-func (mmSendMessage *MessageRepoMock) SendMessage(ctx context.Context, in *model.SendMessageRequest) (err error) {
+func (mmSendMessage *MessageRepoMock) SendMessage(ctx context.Context, in *model.SendMessageRequest) (mp1 *model.Message, err error) {
 	mm_atomic.AddUint64(&mmSendMessage.beforeSendMessageCounter, 1)
 	defer mm_atomic.AddUint64(&mmSendMessage.afterSendMessageCounter, 1)
 
@@ -256,7 +257,7 @@ func (mmSendMessage *MessageRepoMock) SendMessage(ctx context.Context, in *model
 	for _, e := range mmSendMessage.SendMessageMock.expectations {
 		if minimock.Equal(*e.params, mm_params) {
 			mm_atomic.AddUint64(&e.Counter, 1)
-			return e.results.err
+			return e.results.mp1, e.results.err
 		}
 	}
 
@@ -285,7 +286,7 @@ func (mmSendMessage *MessageRepoMock) SendMessage(ctx context.Context, in *model
 		if mm_results == nil {
 			mmSendMessage.t.Fatal("No results are set for the MessageRepoMock.SendMessage")
 		}
-		return (*mm_results).err
+		return (*mm_results).mp1, (*mm_results).err
 	}
 	if mmSendMessage.funcSendMessage != nil {
 		return mmSendMessage.funcSendMessage(ctx, in)
