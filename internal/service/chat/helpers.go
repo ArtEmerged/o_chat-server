@@ -1,5 +1,7 @@
 package chat
 
+import "sort"
+
 func uniqueSliceInt64(s []int64) []int64 {
 	uniqueUserIDs := map[int64]struct{}{}
 
@@ -12,5 +14,7 @@ func uniqueSliceInt64(s []int64) []int64 {
 	for userID := range uniqueUserIDs {
 		result = append(result, userID)
 	}
+
+	sort.Slice(result, func(i, j int) bool { return result[i] < result[j] })
 	return result
 }

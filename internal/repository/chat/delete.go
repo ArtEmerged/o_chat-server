@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ArtEmerged/o_chat-server/internal/client/db"
+	"github.com/ArtEmerged/library/client/db"
 )
 
 // DeleteChat deletes chat by id.
@@ -15,7 +15,7 @@ func (r *chatRepo) DeleteChat(ctx context.Context, id int64) error {
 	}
 
 	q.QueryRaw =
-		`UPDATE public.chat_users
+		`UPDATE public.chats
 		SET deleted_at = $1
 		WHERE id = $2 AND deleted_at IS NULL;`
 

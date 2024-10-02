@@ -60,3 +60,7 @@ docker-build:
 	docker buildx build --no-cache --platform linux/amd64 -t $(REGISTRY_URL)/chat-server:v0.0.1 .
 	docker login -u $(REGISTRY_USER) -p $(REGISTRY_PASSWORD) $(REGISTRY_URL)
 
+test :
+	go test -coverprofile=coverage.out ./...
+	go tool cover -html=coverage.out -o coverage.html
+

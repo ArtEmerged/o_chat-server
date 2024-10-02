@@ -5,6 +5,21 @@ import (
 	"strings"
 )
 
+const chatCacheKey = "chats:chat:%d"
+
+// ChatCacheKey returns key for chat
+func ChatCacheKey(chatID int64) string {
+	return fmt.Sprintf(chatCacheKey, chatID)
+}
+
+// Chat is a model for chat.
+type Chat struct {
+	ID        int64   `json:"id"`
+	ChatName  string  `json:"chat_name"`
+	CreatorID int64   `json:"creator_id"`
+	UserIDs   []int64 `json:"user_ids"`
+}
+
 // CreateChatRequest is a request for method CreateChat.
 type CreateChatRequest struct {
 	ChatName  string

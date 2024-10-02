@@ -17,3 +17,13 @@ func SendMessageRequestToRepo(in *model.SendMessageRequest) *modelRepo.SendMessa
 		CreatedAt:  time.Now().UTC(),
 	}
 }
+
+func MessageToModel(in *modelRepo.Message) *model.Message {
+	return &model.Message{
+		ID:         in.ID,
+		ChatID:     in.ChatID,
+		FromUserID: in.FromUserID,
+		Text:       in.Text,
+		CreatedAt:  in.CreatedAt,
+	}
+}

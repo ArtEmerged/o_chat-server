@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ArtEmerged/o_chat-server/internal/client/db"
+	"github.com/ArtEmerged/library/client/db"
+
 	"github.com/ArtEmerged/o_chat-server/internal/model"
 	"github.com/ArtEmerged/o_chat-server/internal/repository/chat/adapter"
 )

@@ -3,6 +3,11 @@ package model
 import (
 	"fmt"
 	"strings"
+	"time"
+)
+
+const (
+	DefaultTTL = time.Hour * 1
 )
 
 // SendMessageRequest is a request for method SendMessage.
@@ -25,4 +30,18 @@ func (r *SendMessageRequest) Validate() error {
 	}
 
 	return nil
+}
+
+// Message is a message
+type Message struct {
+	ID         int64     `json:"id"`
+	ChatID     int64     `json:"chat_id"`
+	FromUserID int64     `json:"from_user_id"`
+	Text       string    `json:"text"`
+	CreatedAt  time.Time `json:"created_at"`
+}
+
+// CreateMessageKey returns key for chat messages
+func CreateMessageKey(chatID int64) string {
+	return fmt.Sprintf("chats:chat:%d:messages", chatID)
 }
