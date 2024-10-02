@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+const (
+	DefaultTTL = time.Hour * 1
+)
+
 // SendMessageRequest is a request for method SendMessage.
 type SendMessageRequest struct {
 	ChatID     int64

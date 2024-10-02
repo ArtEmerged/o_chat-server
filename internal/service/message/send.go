@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"strconv"
-	"time"
 
 	"github.com/ArtEmerged/o_chat-server/internal/model"
 )
@@ -22,7 +21,7 @@ func (s *messageService) SendMessage(ctx context.Context, in *model.SendMessageR
 
 	msgIDStr := strconv.FormatInt(message.ID, 10)
 
-	err = s.cache.HSet(ctx, model.CreateMessageKey(in.ChatID), msgIDStr, message, time.Hour*1)
+	err = s.cache.HSet(ctx, model.CreateMessageKey(in.ChatID), msgIDStr, message, model.DefaultTTL)
 	if err != nil {
 		log.Printf("WARN: failed to save message in cache: %s\n", err.Error())
 	}
